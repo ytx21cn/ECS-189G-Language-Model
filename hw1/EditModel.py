@@ -58,7 +58,7 @@ class EditModel(object):
 
   def insertEdits(self, word):
     """Returns a list of edits of 1-insert distance words and rules used to generate them."""
-    # TODO: write this
+    # COMPLETED: write this
     # Tip: you might find EditModel.ALPHABET helpful
     # Tip: If inserting the letter 'a' as the second character in the word 'test', the corrupt
     #      signal is 't' and the correct signal is 'ta'. See slide 17 of the noisy channel model.
@@ -86,7 +86,7 @@ class EditModel(object):
 
   def transposeEdits(self, word):
     """Returns a list of edits of 1-transpose distance words and rules used to generate them."""
-    # TODO: write this
+    # COMPLETED: write this
     # Tip: If tranposing letters 'te' in the word 'test', the corrupt signal is 'te'
     #      and the correct signal is 'et'. See slide 17 of the noisy channel model.
 
@@ -103,7 +103,7 @@ class EditModel(object):
 
   def replaceEdits(self, word):
     """Returns a list of edits of 1-replace distance words and rules used to generate them."""
-    # TODO: write this
+    # COMPLETED: write this
     # Tip: you might find EditModel.ALPHABET helpful
     # Tip: If replacing the letter 'e' with 'q' in the word 'test', the corrupt signal is 'e'
     #      and the correct signal is 'q'. See slide 17 of the noisy channel model.
