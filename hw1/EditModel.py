@@ -45,9 +45,9 @@ class EditModel(object):
     word = "<" + word #Append start character
     ret = []
     for i in xrange(1, len(word)):
-      #The corrupted signal are this character and the character preceding
+      #The corrupted signal are this character and the character preceding (characters i-1 and i)
       corruptLetters = word[i-1:i+1] 
-      #The correct signal is just the preceding character
+      #The correct signal is just the preceding character (character i-1)
       correctLetters = corruptLetters[:-1]
 
       #The corrected word deletes character i (and lacks the start symbol)
@@ -62,15 +62,44 @@ class EditModel(object):
     # Tip: you might find EditModel.ALPHABET helpful
     # Tip: If inserting the letter 'a' as the second character in the word 'test', the corrupt
     #      signal is 't' and the correct signal is 'ta'. See slide 17 of the noisy channel model.
+
     word = "<" + word # append start token
-    return []
+    ret = []
+
+    for i in xrange(0, len(word)):
+      for j in EditModel.ALPHABET:
+        corruptLetters = word[i] # starts from "<" at the beginning
+        correctLetters = "%s%s" % (word[i], j)
+        correction = "%s%s%s" % (word[:i], correctLetters, word[i+1:])
+        correction = correction[1:] # drop the "<" at the beginning
+        ''' Example: modifying the word "<word" by inserting one letter
+          i = 0, 1, 2, 3, 4
+            i = 0: [<a]word, [<b]word, [<c]word, ..., [<z]word
+            i = 1: <[wa]ord, <[wb]ord, <[wc]ord, ..., <[wz]ord,
+            ...
+            i = 4: <wor[da], <wor[db], <wor[dc], ..., <wor[dz]
+          Then the "<" symbol at the beginning is dropped
+        '''
+        ret.append(Edit(correction, corruptLetters, correctLetters))
+
+    return ret
 
   def transposeEdits(self, word):
     """Returns a list of edits of 1-transpose distance words and rules used to generate them."""
     # TODO: write this
     # Tip: If tranposing letters 'te' in the word 'test', the corrupt signal is 'te'
     #      and the correct signal is 'et'. See slide 17 of the noisy channel model.
-    return []
+
+    ret = []
+    
+    for i in xrange(0, len(word)-1):
+      corruptLetters = word[i:i+2]
+      correctLetters = "%s%s" % (word[i+1], word[i]) # two adjacent letters swapped
+      correction = "%s%s%s" % (word[:i], correctLetters, word[i+2:])
+      
+      ret.append(Edit(correction, corruptLetters, correctLetters))
+
+    return ret
 
   def replaceEdits(self, word):
     """Returns a list of edits of 1-replace distance words and rules used to generate them."""
@@ -78,7 +107,18 @@ class EditModel(object):
     # Tip: you might find EditModel.ALPHABET helpful
     # Tip: If replacing the letter 'e' with 'q' in the word 'test', the corrupt signal is 'e'
     #      and the correct signal is 'q'. See slide 17 of the noisy channel model.
-    return []
+
+    ret = []
+
+    for i in xrange(0, len(word)):
+      for j in EditModel.ALPHABET:
+        corruptLetters = word[i]
+        correctLetters = j
+        if corruptLetters != correctLetters:
+          correction = "%s%s%s" % (word[:i], correctLetters, word[i+1:])
+          ret.append(Edit(correction, corruptLetters, correctLetters))
+
+    return ret
 
   def edits(self, word):
     """Returns a list of tuples of 1-edit distance words and rules used to generate them, e.g. ("test", "te|et")"""
