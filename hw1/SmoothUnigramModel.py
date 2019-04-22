@@ -12,7 +12,7 @@ class SmoothUnigramModel:
     """ Takes a corpus and trains your language model. 
         Compute any counts or other corpus statistics in this function.
     """
-    # TODO your code here
+    # COMPLETED your code here
     # Tip: To get words from the corpus, try
     #   for sentence in corpus.corpus:
     #     for datum in sentence.data:  
