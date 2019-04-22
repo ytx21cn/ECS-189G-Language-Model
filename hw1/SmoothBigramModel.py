@@ -4,6 +4,8 @@ class SmoothBigramModel:
 
   def __init__(self, corpus):
     """Initialize your data structures in the constructor."""
+    self.smoothBigramCounts = collections.defaultdict(lambda: 0)
+    self.total = 0
     self.train(corpus)
 
   def train(self, corpus):
@@ -15,7 +17,13 @@ class SmoothBigramModel:
     #    for sentence in corpus.corpus:
     #       for datum in sentence.data:  
     #         word = datum.word
-    pass
+
+    for sentence in corpus.corpus:
+      for datum in sentence.data:
+        token = datum.word
+        self.smoothBigramCounts[token] += 1
+        self.total += 1
+    
 
   def score(self, sentence):
     """ Takes a list of strings as argument and returns the log-probability of the 
