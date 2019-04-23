@@ -20,7 +20,13 @@ class SmoothBigramModel:
 
     for sentence in corpus.corpus:
       for i in xrange(1, len(sentence.data)):
-        token = (sentence.data[i].word, sentence.data[i-1].word) # first entry is current word; second entry is previous word
+        datum = sentence.data[i]
+        token = datum.word
+
+        prevDatum = sentence.data[i-1]
+        prevToken = prevDatum.word
+        
+        token = (token, prevToken) # first entry is current word; second entry is previous word
         self.smoothBigramCounts[token] += 1
         self.total += 1
 
