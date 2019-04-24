@@ -60,13 +60,12 @@ class CustomModel:
           # compute lambda(w_(i-1))
           lambdaPrev = 0
           if unigramCount == 0:
-            lambdaPrev = d
+            lambdaPrev = d * 0.1
           else:
             afterWordSum = self.sumAfterWords(self.bigramCounts, prevWord)
             lambdaPrev = (d / float(afterWordSum)) * float(afterWordCount)
 
           # compute P_continuation
-          # pContCurrent = float(beforeWordCount) / float(len(self.bigramCounts))
           pContCurrent = float(beforeWordCount) / float(len(self.bigramCounts))
 
           currentScore = float(max(bigramCount - d, 0)) / float(unigramCount) + lambdaPrev * pContCurrent
@@ -74,12 +73,11 @@ class CustomModel:
           score += currentScore
 
         else: # if bigram does not work, try unigram instead
-          c = 1
           unigramCount = self.unigramCounts[currentWord]
           
           score += math.log(unigramCount + 1)
           score -= math.log(self.total)
-          score += math.log(c)
+          score += math.log(0.5)
 
     return score
           
