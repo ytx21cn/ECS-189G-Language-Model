@@ -29,9 +29,9 @@ class BackoffModel:
         
         # then add the training entry for (raw) bigram as well
         if i > 0:
-          precDatum = sentence.data[i-1]
-          precToken = precDatum.word
-          self.bigramCounts[(token, precToken)] += 1
+          prevDatum = sentence.data[i-1]
+          prevToken = prevDatum.word
+          self.bigramCounts[(token, prevToken)] += 1
 
   def score(self, sentence):
     """ Takes a list of strings as argument and returns the log-probability of the 
@@ -43,8 +43,8 @@ class BackoffModel:
     
     for i in xrange(1, len(sentence)):
       currentWord = sentence[i]
-      precWord = sentence[i-1]
-      currentTuple = (currentWord, precWord)
+      prevWord = sentence[i-1]
+      currentTuple = (currentWord, prevWord)
 
       bigramCount = self.bigramCounts[currentTuple]
       smoothUnigramCount = self.smoothUnigramCounts[currentWord]
