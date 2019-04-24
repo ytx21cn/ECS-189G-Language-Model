@@ -26,8 +26,8 @@ class SmoothBigramModel:
         prevDatum = sentence.data[i-1]
         prevToken = prevDatum.word
         
-        currentTuple = (token, prevToken) # first entry is current word; second entry is previous word
-        self.smoothBigramCounts[currentTuple] += 1
+        key = "%s, %s" % (prevToken, token) # first entry is current word; second entry is previous word
+        self.smoothBigramCounts[key] += 1
         self.total += 1
 
   def score(self, sentence):
@@ -39,8 +39,8 @@ class SmoothBigramModel:
     score = 0.0
 
     for i in xrange(1, len(sentence)):
-      currentTuple = (sentence[i], sentence[i-1])
-      count = self.smoothBigramCounts[currentTuple] + 1
+      key = "%s, %s" % (sentence[i-1], sentence[i])
+      count = self.smoothBigramCounts[key] + 1
       score += math.log(count)
       score -= math.log(self.total)
     
