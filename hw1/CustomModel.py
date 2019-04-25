@@ -74,7 +74,6 @@ class CustomModel:
         # compute P_continuation
         pContCurrent = float(beforeWordCount) / float(afterWordSum)
 
-        #currentScore = float(max(bigramCount - d, 0)) / float(unigramCount) + lambdaPrev * pContCurrent
         currentScore = float(bigramCount - d) / float(afterWordSum) + lambdaPrev * (unigramCount / self.total)
         currentScore = math.log(currentScore)
         score += currentScore
