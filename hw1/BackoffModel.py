@@ -5,7 +5,7 @@ class BackoffModel:
   def __init__(self, corpus):
     """Initialize your data structures in the constructor."""
     self.bigramCounts = collections.defaultdict(lambda: 0)
-    self.smoothUnigramCounts = collections.defaultdict(lambda: 0)
+    self.unigramCounts = collections.defaultdict(lambda: 0)
     self.total = 0
     self.train(corpus)
 
@@ -24,14 +24,14 @@ class BackoffModel:
         # first add the training entry for smooth unigram model
         datum = sentence.data[i]
         token = datum.word
-        self.smoothUnigramCounts[token] += 1
+        self.unigramCounts[token] += 1
         self.total += 1
         
         # then add the training entry for (raw) bigram as well
         if i > 0:
           prevDatum = sentence.data[i-1]
           prevToken = prevDatum.word
-          key = "%s, %s" % (prevToken, token)
+          key = "%s,%s" % (prevToken, token)
           self.bigramCounts[key] += 1
 
   def score(self, sentence):
@@ -45,18 +45,21 @@ class BackoffModel:
     for i in xrange(1, len(sentence)):
       currentWord = sentence[i]
       prevWord = sentence[i-1]
-      key = "%s, %s" % (prevWord, currentWord)
+      key = "%s,%s" % (prevWord, currentWord)
 
       bigramCount = self.bigramCounts[key]
-      smoothUnigramCount = self.smoothUnigramCounts[currentWord]
+      unigramCount = self.unigramCounts[currentWord]
       
       if bigramCount > 0:
         score += math.log(bigramCount)
-        score -= math.log(smoothUnigramCount)
+        score -= math.log(unigramCount)
       else: # try unigram model if count == 0
         alpha = 0.4
-        score += math.log(smoothUnigramCount + 1)
-        score -= math.log(self.total * 3)
+        if unigramCount > 0:
+            score += math.log(unigramCount)
+        else:
+            score += math.log(0.00001)
+        score -= math.log(self.total)
         score += math.log(alpha)
         
     return score
