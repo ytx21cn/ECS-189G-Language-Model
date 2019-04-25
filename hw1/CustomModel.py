@@ -5,17 +5,21 @@ class CustomModel:
     """Initial custom language model and structures needed by this mode"""
     self.bigramCounts = collections.defaultdict(lambda: 0)
     self.unigramCounts = collections.defaultdict(lambda: 0)
+    
     self.beforeWordCounts = collections.defaultdict(lambda: 0)
+    self.beforeWordSums = collections.defaultdict(lambda: 0)
     self.afterWordCounts = collections.defaultdict(lambda: 0)
-    self.afterWordLists = collections.defaultdict(lambda: [])
+    self.afterWordSums = collections.defaultdict(lambda: 0)
+
     self.total = 0
     self.train(corpus)
 
   def train(self, corpus):
     """ Takes a corpus and trains your language model.
     """  
-    # TODO your code here
-    
+    # COMPLETED your code here
+
+    # count unigrams and bigrams
     for sentence in corpus.corpus:
       data = sentence.data
       # process first for unigram, then for bigram
@@ -23,90 +27,66 @@ class CustomModel:
         self.total += 1
         token = data[i].word
         self.unigramCounts[token] += 1
+        
         if i >= 1:
           prevToken = data[i-1].word
-          key = "%s, %s" % (prevToken, token)
+          key = "%s,%s" % (prevToken, token)
           self.bigramCounts[key] += 1
-        if i < (len(data) - 1):
-          nextToken = data[i+1].word
-          key = "%s, %s" % (token, nextToken)
-          self.afterWordLists[token].append(key)
-    
-    for token in self.unigramCounts.keys():
-      self.afterWordCounts[token] = self.countAfterWords(self.bigramCounts, token)
-      self.beforeWordCounts[token] = self.countBeforeWords(self.bigramCounts, token)
+
+          if self.bigramCounts[key] == 1: # if new key found
+            # update counts of unique before / after words
+            self.afterWordCounts[prevToken] += 1
+            self.beforeWordCounts[token] += 1
+
+          # update the sums (occurences) for before / after words
+          self.afterWordSums[prevToken] += 1
+          self.beforeWordSums[token] += 1
+
 
   def score(self, sentence):
     """ With list of strings, return the log-probability of the sentence with language model. Use
         information generated from train.
     """
-    # TODO your code here
+    # COMPLETED your code here
 
     score = 0
-    d = 0.75
 
-    for i in xrange(0, len(sentence)):
-      if i >= 1:
-        currentWord = sentence[i]
-        prevWord = sentence[i-1]
-        bigramKey = "%s, %s" % (prevWord, currentWord)
-        bigramCount = self.bigramCounts[bigramKey]
+    for i in xrange(1, len(sentence)):
+      d = 0.75
+      
+      currentWord = sentence[i]
+      prevWord = sentence[i-1]
+      bigramKey = "%s,%s" % (prevWord, currentWord)
+      bigramCount = self.bigramCounts[bigramKey]
 
-        if bigramCount > 0: # if bigram count works
-          beforeWordCount = self.beforeWordCounts[currentWord]
-          afterWordCount = self.afterWordCounts[prevWord]
-          unigramCount = self.unigramCounts[prevWord]
+      if bigramCount > 0: # if bigram count works
+        beforeWordCount = self.beforeWordCounts[currentWord]
+        afterWordCount = self.afterWordCounts[prevWord]
+        unigramCount = self.unigramCounts[prevWord]
+        afterWordSum = self.afterWordSums[prevWord]
 
-          # compute lambda(w_(i-1))
-          lambdaPrev = 0
-          if unigramCount == 0:
-            lambdaPrev = d * 0.1
-          else:
-            afterWordSum = self.sumAfterWords(self.bigramCounts, prevWord)
-            lambdaPrev = (d / float(afterWordSum)) * float(afterWordCount)
+        if bigramCount == 1:
+          d = 0.5
 
-          # compute P_continuation
-          pContCurrent = float(beforeWordCount) / float(len(self.bigramCounts))
+        # compute lambda(w_(i-1))
+        lambdaPrev = (d / float(afterWordSum)) * float(afterWordCount)
 
-          currentScore = float(max(bigramCount - d, 0)) / float(unigramCount) + lambdaPrev * pContCurrent
-          currentScore = math.log(currentScore)
-          score += currentScore
+        # compute P_continuation
+        pContCurrent = float(beforeWordCount) / float(afterWordSum)
 
-        else: # if bigram does not work, try unigram instead
-          unigramCount = self.unigramCounts[currentWord]
-          
-          score += math.log(unigramCount + 1)
-          score -= math.log(self.total)
-          score += math.log(0.5)
+        #currentScore = float(max(bigramCount - d, 0)) / float(unigramCount) + lambdaPrev * pContCurrent
+        currentScore = float(bigramCount - d) / float(afterWordSum) + lambdaPrev * (unigramCount / self.total)
+        currentScore = math.log(currentScore)
+        score += currentScore
+
+      else: # if bigram does not work, try unigram instead
+        alpha = 0.4
+        unigramCount = self.unigramCounts[currentWord]
+        if unigramCount > 0:
+            score += math.log(unigramCount)
+        else:
+            score += math.log(0.00001)
+        score -= math.log(self.total)
+        score += math.log(alpha)
 
     return score
-          
-
-  def countBeforeWords(self, dictionary, token):
-    ''' count the number of unique words at position i-1 that come before word i
-    '''
-    num = 0
-    keys = dictionary.keys()
-    for key in keys:
-      if key.endswith(token):
-        num += 1
-    return num
-
-  def countAfterWords(self, dictionary, token):
-    ''' count the number of unique words at position i that come after word i-1
-    '''
-    num = 0
-    keys = dictionary.keys()
-    for key in keys:
-      if key.startswith(token):
-        num += 1
-    return num
-
-  def sumAfterWords(self, countDict, token):
-    ''' sum the counts of words at position i that come after word i-1
-    '''
-    sum = 0
-    keys = self.afterWordLists[token]
-    for key in keys:
-      sum += countDict[key]
-    return sum
